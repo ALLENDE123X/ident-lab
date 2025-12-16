@@ -4,7 +4,7 @@
 # Includes optional GPU acceleration via CuPy.
 
 # ============== SETUP ==============
-!pip install pysindy==1.7.5 xgboost pyyaml joblib tqdm --quiet
+!pip install pysindy==1.7.5 xgboost pyyaml joblib tqdm numpy_indexed scipy==1.11.4 scikit-learn==1.3.0 --quiet
 
 # Optional: GPU acceleration (uncomment if using GPU runtime)
 # !pip install cupy-cuda12x --quiet  # For CUDA 12.x
