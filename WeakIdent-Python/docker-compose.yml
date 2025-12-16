@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  # Main development container
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - ./artifacts:/app/artifacts
+      - ./experiments:/app/experiments
+    working_dir: /app
+    environment:
+      - PYTHONPATH=/app
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+
+  # Run tests
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: pytest tests/ -v --tb=short
+
+  # Run benchmark
+  benchmark:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - ./artifacts:/app/artifacts
+    working_dir: /app
+    command: python scripts/run_benchmark.py --cfg config/default.yaml --quick --parallel 4
+
+  # Generate dataset
+  dataset:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - ./artifacts:/app/artifacts
+    working_dir: /app
+    command: python scripts/make_dataset.py --cfg config/default.yaml --parallel 4 --verbose
