@@ -39,4 +39,9 @@ try:
 except ImportError:
     pass  # pysindy not installed
 
+try:
+    from .robustident_method import RobustIdentMethod
+except ImportError:
+    pass  # Should always work (no external deps)
+
 __all__ = ["IdentMethodBase", "METHOD_REGISTRY"]
