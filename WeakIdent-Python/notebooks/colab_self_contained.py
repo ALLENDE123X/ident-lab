@@ -20,6 +20,7 @@ os.makedirs("data", exist_ok=True)
 
 # Data files to download (only the working ones)
 DATA_FILES = {
+    "burgers": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/burgers_viscous.npy",
     "kdv": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/KdV.npy",
     "heat": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/heat.npy",
     "ks": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/KS.npy",
@@ -61,6 +62,12 @@ print(f"  Output directory: {OUTPUT_DIR}")
 
 # ============== CELL 4: PDE Configurations ==============
 PDE_CONFIGS = {
+    "burgers": {
+        "data_file": "data/burgers.npy",
+        "grid": {"dx": 0.0625, "dt": 0.001},
+        "windows": {"size_x": 64, "size_t": 100},
+        "true_coefficients": {"u*u_x": -1.0, "u_xx": 0.01}
+    },
     "kdv": {
         "data_file": "data/kdv.npy",
         "grid": {"dx": 0.05, "dt": 0.001},
