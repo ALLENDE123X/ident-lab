@@ -38,6 +38,7 @@ dependencies = [
 
 [project.optional-dependencies]
 catboost = ["catboost>=1.2"]
+pysindy = ["pysindy>=1.7"]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
@@ -45,7 +46,7 @@ dev = [
     "black>=23.0",
     "mypy>=1.0",
 ]
-all = ["weakident-selector[catboost,dev]"]
+all = ["weakident-selector[catboost,pysindy,dev]"]
 
 [project.urls]
 Repository = "https://github.com/sunghakang/WeakIdent"

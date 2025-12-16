@@ -28,4 +28,15 @@ Example:
 from .base import IdentMethodBase
 from .registry import METHOD_REGISTRY
 
+# Import method implementations to auto-register them
+try:
+    from .pysindy_method import PySINDyMethod
+except ImportError:
+    pass  # pysindy not installed
+
+try:
+    from .wsindy_method import WSINDyMethod
+except ImportError:
+    pass  # pysindy not installed
+
 __all__ = ["IdentMethodBase", "METHOD_REGISTRY"]
