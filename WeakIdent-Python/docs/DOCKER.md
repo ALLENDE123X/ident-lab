@@ -1,87 +1,62 @@
-# Docker Environment
+# Docker-based Development
 
-This directory contains Docker configuration for reproducible development and testing.
+This project uses Docker for reproducible builds and testing.
+
+## Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed
+- Docker Compose (included with Docker Desktop)
 
 ## Quick Start
 
 ```bash
-# Start Docker Desktop first, then:
-
-# Build the image
+# Build the container
 docker-compose build
 
-# Run tests
+# Verify PySINDy integration
+docker-compose run weakident
+
+# Run all tests
 docker-compose run test
 
-# Interactive development shell
-docker-compose run dev
-
-# Generate dataset
-docker-compose run dataset
-
-# Run quick benchmark
-docker-compose run benchmark
+# Run PySINDy-specific tests
+docker-compose run test-pysindy
 ```
 
-## Manual Docker Commands
+## Available Services
+
+| Service | Description | Command |
+|---------|-------------|---------|
+| `weakident` | Verify method registration | `docker-compose run weakident` |
+| `test` | Run all tests | `docker-compose run test` |
+| `test-pysindy` | Test PySINDy integration | `docker-compose run test-pysindy` |
+| `benchmark` | Run quick benchmark | `docker-compose run benchmark` |
+| `make-dataset` | Generate dataset | `docker-compose run make-dataset` |
+| `shell` | Interactive bash shell | `docker-compose run shell` |
+
+## Custom Commands
 
 ```bash
-# Build image
-docker build -t weakident-selector .
+# Run any Python script
+docker-compose run weakident python scripts/train_selector.py --cfg config/default.yaml
 
-# Run tests
-docker run --rm weakident-selector pytest tests/ -v
+# Interactive Python
+docker-compose run weakident python
 
-# Interactive shell
-docker run -it --rm -v $(pwd):/app weakident-selector bash
-
-# Test PySINDy import
-docker run --rm weakident-selector python -c "import pysindy; print('PySINDy:', pysindy.__version__)"
-
-# Run benchmark with output
-docker run --rm -v $(pwd)/artifacts:/app/artifacts weakident-selector \
-    python scripts/run_benchmark.py --cfg config/default.yaml --quick --parallel 4
+# Run specific tests
+docker-compose run weakident pytest tests/test_features.py -v
 ```
 
-## Services (docker-compose)
+## Rebuilding
 
-| Service | Description |
-|---------|-------------|
-| `dev` | Interactive development shell with mounted volume |
-| `test` | Run pytest on all tests |
-| `benchmark` | Run quick benchmark with 4 parallel workers |
-| `dataset` | Generate dataset with default config |
+If you modify dependencies:
 
-## Mounted Volumes
-
-- `.:/app` - Project directory (for development)
-- `./artifacts:/app/artifacts` - Dataset and model outputs
-
-## Dependencies
-
-The `requirements-docker.txt` contains pinned versions:
-- numpy==1.26.4
-- scipy==1.11.4
-- scikit-learn==1.3.0
-- pysindy==1.7.5
-
-These are tested to work together without conflicts.
-
-## Troubleshooting
-
-**Docker daemon not running:**
-```bash
-# macOS: Start Docker Desktop app
-# Linux: sudo systemctl start docker
-```
-
-**Permission denied:**
-```bash
-# Add user to docker group (Linux)
-sudo usermod -aG docker $USER
-```
-
-**Rebuild after code changes:**
 ```bash
 docker-compose build --no-cache
 ```
+
+## Volumes
+
+- `.:/app` — Source code mounted for live editing
+- `./artifacts:/app/artifacts` — Persisted outputs
+- `./experiments:/app/experiments` — Experiment results

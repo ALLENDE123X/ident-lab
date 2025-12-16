@@ -1,30 +1,24 @@
-# Pinned dependencies for Docker reproducibility
-# Last tested: December 2024
+# Pinned dependencies for reproducible Docker builds
+# These versions are tested to work together
 
-# Core scientific stack (pinned for compatibility)
+# Core scientific stack
 numpy==1.26.4
 scipy==1.11.4
 scikit-learn==1.3.0
-matplotlib==3.8.2
-pandas==2.1.4
+matplotlib==3.8.0
 
-# IDENT methods
+# PySINDy and dependencies
 pysindy==1.7.5
-
-# Deep learning (optional, comment out if not needed)
-# torch>=2.0.0
+derivative==0.6.2
 
 # Utilities
 pyyaml>=6.0
-tqdm>=4.60
-joblib>=1.2
-derivative>=0.6.0
+tqdm>=4.65
+joblib>=1.3
 
 # Testing
 pytest>=7.0
 pytest-cov>=4.0
 
-# Development (optional)
-# ruff>=0.1.0
-# black>=23.0
-# mypy>=1.0
+# Optional but recommended
+catboost>=1.2
