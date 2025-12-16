@@ -11,6 +11,9 @@ matplotlib==3.8.0
 pysindy==1.7.5
 derivative==0.6.2
 
+# XGBoost for model comparison
+xgboost>=1.7
+
 # Utilities
 pyyaml>=6.0
 tqdm>=4.65
