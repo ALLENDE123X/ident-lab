@@ -4,7 +4,8 @@
 # Run this separately while other methods run elsewhere.
 
 # ============== SETUP ==============
-!pip install pyyaml joblib tqdm pandas numpy scipy==1.11.4 numpy_indexed tabulate --quiet
+# Install missing dependencies (don't pin versions to avoid conflicts with Colab's numpy)
+!pip install pyyaml joblib tqdm numpy_indexed tabulate --quiet
 
 # Clone the repository
 !git clone https://github.com/ALLENDE123X/ident-lab.git
