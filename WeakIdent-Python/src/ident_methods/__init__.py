@@ -44,4 +44,9 @@ try:
 except ImportError:
     pass  # Should always work (no external deps)
 
+try:
+    from .weakident_method import WeakIdentMethod
+except ImportError:
+    pass  # May fail if model.py not available
+
 __all__ = ["IdentMethodBase", "METHOD_REGISTRY"]
