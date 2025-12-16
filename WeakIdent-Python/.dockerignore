@@ -1,9 +1,5 @@
-# Git
-.git
-.gitignore
-
 # Python
-__pycache__
+__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -25,18 +21,19 @@ wheels/
 *.egg
 
 # Virtual environments
-.env
-.venv
-env/
+.venv/
 venv/
 ENV/
 
 # IDE
-.vscode/
 .idea/
+.vscode/
 *.swp
 *.swo
-*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
 
 # Testing
 .pytest_cache/
@@ -45,25 +42,30 @@ htmlcov/
 .tox/
 .nox/
 
-# Artifacts (mount separately)
-artifacts/
-experiments/outputs/
+# MyPy
+.mypy_cache/
+
+# Local development
+*.log
+*.local
+
+# Dataset artifacts (large files)
 *.npy
 *.npz
+*.h5
+*.hdf5
 *.pkl
-*.joblib
+*.pickle
 
-# OS
+# Generated outputs
+artifacts/
+outputs/
+models/*.joblib
+
+# Experiment outputs (keep config, ignore results)
+experiments/*/outputs/
+experiments/*/models/
+
+# OS files
 .DS_Store
 Thumbs.db
-
-# Documentation build
-docs/_build/
-
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb
-
-# Temp files
-*.log
-*.tmp

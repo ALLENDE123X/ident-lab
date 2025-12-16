@@ -11,7 +11,7 @@ import numpy as np
 
 try:
     import pysindy as ps
-    from pysindy.feature_library import WeakPDELibrary, PolynomialLibrary
+    from pysindy.feature_library import WeakPDELibrary
     PYSINDY_AVAILABLE = True
 except ImportError:
     PYSINDY_AVAILABLE = False
@@ -100,14 +100,16 @@ class WSINDyMethod(IdentMethodBase):
             K = min(K, (nt - 1) * (nx - 1) // 4)
             K = max(K, 10)  # Minimum number of test functions
             
+            # Create spatiotemporal grid as numpy array
+            # WeakPDELibrary expects a stacked array, not a list from meshgrid
+            X, T = np.meshgrid(x, t, indexing='xy')
+            spatiotemporal_grid = np.stack([T, X], axis=-1)  # (nt, nx, 2)
+            
             # Create weak PDE library
-            # WeakPDELibrary uses test functions for noise robustness
             weak_lib = WeakPDELibrary(
-                function_library=PolynomialLibrary(degree=polynomial_degree),
                 derivative_order=derivative_order,
-                spatiotemporal_grid=np.meshgrid(x, t, indexing='ij'),
+                spatiotemporal_grid=spatiotemporal_grid,
                 include_bias=True,
-                is_uniform=True,
                 K=K,
             )
             
@@ -117,8 +119,8 @@ class WSINDyMethod(IdentMethodBase):
                 optimizer=ps.STLSQ(threshold=threshold, alpha=self.alpha),
             )
             
-            # Fit the model
-            model.fit(u_win, t=dt, x=dx, multiple_trajectories=False)
+            # Fit the model - WeakPDELibrary already has the grid, don't pass x
+            model.fit(u_win, t=dt)
             
             # Extract results
             feature_names = model.get_feature_names()

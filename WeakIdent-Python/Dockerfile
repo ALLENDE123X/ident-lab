@@ -1,38 +1,37 @@
 # WeakIdent PDE-Selector
-# Reproducible Docker environment with pinned scientific Python stack
+# Reproducible research environment with PySINDy integration
 
 FROM python:3.11-slim
 
+LABEL maintainer="WeakIdent Research Team"
+LABEL description="PDE identification and selector framework"
+
 # Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+
+# Set working directory
+WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
     build-essential \
+    git \
     && rm -rf /var/lib/apt/lists/*
-
-# Create working directory
-WORKDIR /app
 
 # Copy requirements first for better caching
 COPY requirements-docker.txt .
 
-# Install Python dependencies with pinned versions
-RUN pip install --no-cache-dir -r requirements-docker.txt
+# Install Python dependencies
+RUN pip install --upgrade pip && \
+    pip install -r requirements-docker.txt
 
-# Copy pyproject.toml for editable install
-COPY pyproject.toml .
-COPY src/ src/
-COPY scripts/ scripts/
-COPY tests/ tests/
-COPY config/ config/
+# Copy the rest of the application
+COPY . .
 
-# Install the package in editable mode
-RUN pip install -e .
+# Install the package in development mode
+RUN pip install -e ".[pysindy,dev]"
 
-# Default command: run tests
+# Run tests by default
 CMD ["pytest", "tests/", "-v", "--tb=short"]
