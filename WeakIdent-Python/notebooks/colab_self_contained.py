@@ -161,11 +161,23 @@ def load_pde_data(filepath):
 
 def extract_windows(u, window_size, pde_name, target_count, dx, dt):
     """Extract overlapping windows from u(x,t) data."""
+    # Handle different data shapes
+    if u.ndim == 1:
+        print(f"  ⚠️ 1D data (shape {u.shape}), skipping")
+        return []
     if u.ndim == 3:
         u = u[:, u.shape[1]//2, :]
+    if u.ndim != 2:
+        print(f"  ⚠️ Unexpected shape {u.shape}, skipping")
+        return []
     
     nx, nt = u.shape
     size_x, size_t = window_size
+    
+    # Check if data is large enough
+    if nx < size_x or nt < size_t:
+        print(f"  ⚠️ Data too small ({nx}x{nt}) for window ({size_x}x{size_t}), skipping")
+        return []
     
     # Compute stride for target count
     approx_stride = int(np.sqrt((nx * nt) / max(1, target_count)))
