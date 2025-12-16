@@ -18,19 +18,12 @@ import urllib.request
 # Create data directory
 os.makedirs("data", exist_ok=True)
 
-# Data files to download (all 11 working PDEs - no burgers_viscous)
+# Data files to download (4 working PDEs only)
 DATA_FILES = {
     "kdv": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/KdV.npy",
     "heat": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/heat.npy",
     "ks": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/KS.npy",
     "transport": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/transportDiff.npy",
-    "nls": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/NLS.npy",
-    "pm": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/PM.npy",
-    "duffing": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/Duffing.npy",
-    "lorenz": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/Lorenz.npy",
-    "vanderpol": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/VanderPol.npy",
-    "lotka_volterra": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/LotkaVolterra.npy",
-    "linear2d": "https://github.com/ALLENDE123X/ident-lab/raw/main/WeakIdent-Python/dataset-Python/Linear2d.npy",
 }
 
 for name, url in DATA_FILES.items():
@@ -67,9 +60,8 @@ print(f"  Windows per PDE: {WINDOWS_PER_PDE}")
 print(f"  Output directory: {OUTPUT_DIR}")
 
 # ============== CELL 4: PDE Configurations ==============
-# All 11 PDEs (no burgers_viscous)
+# 4 working PDEs: KdV, Heat, KS, Transport
 PDE_CONFIGS = {
-    # ===== 1D PDEs =====
     "kdv": {
         "data_file": "data/kdv.npy",
         "grid": {"dx": 0.05, "dt": 0.001},
@@ -93,49 +85,6 @@ PDE_CONFIGS = {
         "grid": {"dx": 0.04, "dt": 0.01},
         "windows": {"size_x": 64, "size_t": 80},
         "true_coefficients": {"u_x": -1.0, "u_xx": 0.01}
-    },
-    "nls": {
-        "data_file": "data/nls.npy",
-        "grid": {"dx": 0.1, "dt": 0.001},
-        "windows": {"size_x": 64, "size_t": 100},
-        "true_coefficients": {"u_xx": 1.0, "|u|^2*u": 1.0}
-    },
-    "pm": {
-        "data_file": "data/pm.npy",
-        "grid": {"dx": 0.05, "dt": 0.01},
-        "windows": {"size_x": 40, "size_t": 40},
-        "true_coefficients": {"(u^2)_xx": 0.3, "(u^2)_yy": 1.0}
-    },
-    # ===== ODEs =====
-    "duffing": {
-        "data_file": "data/duffing.npy",
-        "grid": {"dx": 1.0, "dt": 0.01},
-        "windows": {"size_x": 2, "size_t": 100},
-        "true_coefficients": {"x": -1.0, "x^3": -1.0}
-    },
-    "lorenz": {
-        "data_file": "data/lorenz.npy",
-        "grid": {"dx": 1.0, "dt": 0.01},
-        "windows": {"size_x": 3, "size_t": 100},
-        "true_coefficients": {}
-    },
-    "vanderpol": {
-        "data_file": "data/vanderpol.npy",
-        "grid": {"dx": 1.0, "dt": 0.01},
-        "windows": {"size_x": 2, "size_t": 100},
-        "true_coefficients": {"x": 1.0, "x^3": -1.0}
-    },
-    "lotka_volterra": {
-        "data_file": "data/lotka_volterra.npy",
-        "grid": {"dx": 1.0, "dt": 0.1},
-        "windows": {"size_x": 2, "size_t": 50},
-        "true_coefficients": {}
-    },
-    "linear2d": {
-        "data_file": "data/linear2d.npy",
-        "grid": {"dx": 1.0, "dt": 0.01},
-        "windows": {"size_x": 2, "size_t": 100},
-        "true_coefficients": {}
     },
 }
 
