@@ -51,6 +51,3 @@ models/*.joblib
 *.tmp
 *.bak
 manuscript.zip
-
-# Legacy/historical code (not for distribution)
-legacy/
