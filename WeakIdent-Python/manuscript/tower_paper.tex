@@ -34,7 +34,7 @@
 My interest in this work stems from a practical frustration: when faced with noisy spatiotemporal data, which PDE identification method should one use? Running all available methods is computationally expensive, taking hours for large datasets, and the best choice depends heavily on properties of the data that are not obvious a priori. This project set out to build a meta-learning system that predicts which identification method will perform best on a given data window, before running any expensive computation. The result is a framework that achieves over 97\% test accuracy in selecting the optimal method, with over 97\% of held-out test predictions achieving the same error as an oracle that always picks the best method.
 
 \begin{abstract}
-Identifying governing partial differential equations (PDEs) from noisy spatiotemporal data is a central challenge in scientific machine learning. While numerous identification methods exist (including weak-form, sparse regression, and robust approaches), practitioners lack principled guidance on which method to apply for a given dataset. We present a meta-learning framework that predicts the best-performing identification method for a data window based on 12 computationally inexpensive features extracted from the raw data, without running any identification algorithm. Using a dataset of 5,786 windows extracted from four canonical PDEs (KdV, Heat, Kuramoto-Sivashinsky, and Transport), we train a Random Forest classifier that achieves 97.06\% test accuracy in selecting among four identification methods (LASSO, STLSQ, WeakIDENT, and RobustIDENT). On the held-out test set, 97.06\% of predictions achieve zero regret (meaning the selector achieves the same error as the oracle). Our framework enables efficient algorithm selection for PDE discovery pipelines, reducing computational cost by avoiding unnecessary method evaluations.
+Identifying governing partial differential equations (PDEs) from noisy spatiotemporal data is a central challenge in scientific machine learning. While numerous identification methods exist (including weak-form, sparse regression, and robust approaches), practitioners lack principled guidance on which method to apply for a given dataset. We present a meta-learning framework that predicts the best-performing identification method for a data window based on 12 computationally inexpensive features extracted from the raw data, without running any identification algorithm. Using a dataset of 5,786 windows extracted from four canonical PDEs (KdV, Heat, Kuramoto-Sivashinsky, and Transport), we train a Random Forest classifier that achieves 97.06\% test accuracy in selecting among four identification methods, driven primarily by sparse-regression dominance on clean simulations. On the held-out test set, 97.06\% of predictions achieve the same error as an oracle. Robust methods become essential under high-noise regimes.
 \end{abstract}
 
 \section{Problem and Motivation}
@@ -196,7 +196,7 @@ Ridge Classifier & 0.8800 & 0.865 $\pm$ 0.107 \\
 \end{tabular}
 \end{table}
 
-Random Forest achieved the highest test accuracy at 97.06\%, followed by Gradient Boosting at 95.68\%. The cross-validation results show some variance (standard deviation around 11--12\%), which may reflect heterogeneity across different PDE types in the folds.
+Random Forest achieved the highest test accuracy at 97.06\%, followed by Gradient Boosting at 95.68\%. Cross-validation used default 5-fold KFold (non-stratified) on the full dataset. The CV mean accuracy is lower than test accuracy (87.9\% vs 97.1\%) with high variance (std $\approx$ 0.12), likely because non-stratified folds can have unrepresentative class distributions when minority classes are extremely rare (only 6 samples in WeakIDENT/RobustIDENT combined). The stratified test split provides a more stable and representative evaluation.
 
 Figure~\ref{fig:model_comparison} visualizes this comparison.
 
@@ -288,12 +288,13 @@ Figure~\ref{fig:noise_distribution} shows how the best-method distribution shift
 Key findings from this experiment (200-window subset):
 \begin{itemize}
     \item On the clean subset, LASSO wins 56.5\% and STLSQ wins 43.5\% of windows (similar ordering to the main dataset, though percentages differ due to random sampling).
-    \item Under 2\% Gaussian noise, RobustIDENT becomes optimal for 20.5\% of windows, while LASSO drops to 44.5\% and STLSQ to 35\%.
-    \item Under 5\% Gaussian noise, RobustIDENT captures 19\% of windows.
-    \item Under outlier corruption (1\% spikes), RobustIDENT is optimal for 19\% of windows.
+    \item Under 2\% Gaussian noise, RobustIDENT becomes optimal for 20.5\% of windows, while LASSO drops to 44.5\% and STLSQ to 35.0\%.
+    \item Under 5\% Gaussian noise, LASSO captures 53.0\%, STLSQ 28.0\%, and RobustIDENT 19.0\%.
+    \item Under 1\% outlier corruption, LASSO captures 69.0\%, STLSQ 12.0\%, and RobustIDENT 19.0\%.
+    \item Under heavier corruption (3\% outliers or combined 5\% noise + 1\% outliers), LASSO dominance returns (83--87\%), suggesting that all methods degrade similarly and LASSO remains a reasonable default.
 \end{itemize}
 
-These results confirm that robust methods become competitive under adverse conditions, motivating the need for adaptive method selection rather than a one-size-fits-all approach.
+These results confirm that robust methods become competitive under moderate adverse conditions, motivating the need for adaptive method selection rather than a one-size-fits-all approach.
 
 
 \section{Limitations and Future Work}
