@@ -199,7 +199,7 @@ Ridge Classifier & 0.8800 & 0.865 $\pm$ 0.107 \\
 \end{tabular}
 \end{table}
 
-Random Forest achieved the highest test accuracy at 97.06\%, followed by Gradient Boosting at 95.68\%. Cross-validation used default 5-fold KFold (non-stratified) on the full dataset. The CV mean accuracy is lower than test accuracy (87.9\% vs 97.1\%) with high variance (std $\approx$ 0.12), likely because non-stratified folds can have unrepresentative class distributions when minority classes are extremely rare (only 6 samples in WeakIDENT/RobustIDENT combined). The stratified test split provides a more stable and representative evaluation.
+Random Forest achieved the highest test accuracy at 97.06\%, followed by Gradient Boosting at 95.68\%. We report 5-fold cross-validation accuracy using scikit-learn's default classification cross-validation setting. The gap between the cross-validation mean and the single held-out test split suggests substantial variance across data partitions, likely due to heterogeneity across PDE windows and clustering of more difficult regimes.
 
 Figure~\ref{fig:model_comparison} visualizes this comparison.
 
@@ -234,7 +234,7 @@ Figure~\ref{fig:regret_cdf} shows the cumulative distribution of regret values. 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.8\textwidth]{figures/regret_cdf.png}
-\caption{Cumulative distribution of regret. The near-vertical rise at $x=0$ indicates that 97.06\% of held-out test predictions achieve the same error as the oracle. Most non-zero regrets are small (median non-zero regret $<$ 0.01).}
+\caption{Regret CDF evaluated in-sample over the full dataset. The curve rises sharply at zero regret because 99.41\% of windows achieve oracle-level error.}
 \label{fig:regret_cdf}
 \end{figure}
 
