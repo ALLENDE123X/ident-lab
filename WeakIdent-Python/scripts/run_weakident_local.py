@@ -49,28 +49,28 @@ class WindowSpec:
 # PDE configurations (matching the Colab script)
 PDE_CONFIGS = {
     "kdv": {
-        "data_file": "dataset-Python/KdV.npy",
+        "data_file": "data/raw/KdV.npy",
         "data_format": "nested_object",
         "grid": {"dx": 0.05, "dt": 0.001},
         "windows": {"size_x": 64, "size_t": 100},
         "true_coefficients": {"u*u_x": -1.0, "u_xxx": -1.0}
     },
     "heat": {
-        "data_file": "dataset-Python/heat.npy",
+        "data_file": "data/raw/heat.npy",
         "data_format": "nested_object",
         "grid": {"dx": 0.0427, "dt": 0.002},
         "windows": {"size_x": 48, "size_t": 80},
         "true_coefficients": {"u_xx": 1.0}
     },
     "ks": {
-        "data_file": "dataset-Python/KS.npy",
+        "data_file": "data/raw/KS.npy",
         "data_format": "nested_object",
         "grid": {"dx": 0.39, "dt": 0.01},
         "windows": {"size_x": 64, "size_t": 80},
         "true_coefficients": {"u*u_x": -1.0, "u_xx": -1.0, "u_xxxx": -1.0}
     },
     "transport": {
-        "data_file": "dataset-Python/transportDiff.npy",
+        "data_file": "data/raw/transportDiff.npy",
         "data_format": "nested_object",
         "grid": {"dx": 0.04, "dt": 0.01},
         "windows": {"size_x": 64, "size_t": 80},
