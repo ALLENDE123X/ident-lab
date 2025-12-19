@@ -94,14 +94,24 @@ class PySINDyMethod(IdentMethodBase):
             # For PDEs, we treat each spatial point as a feature
             u_flat = u_win.T  # (nx, nt) - spatial points x time samples
             
-            # Create PDE library
-            pde_lib = PDELibrary(
-                function_library=PolynomialLibrary(degree=polynomial_degree),
-                derivative_order=derivative_order,
-                spatial_grid=x,
-                include_bias=True,
-                is_uniform=True,
-            )
+            # Create PDE library (API changed in newer versions)
+            try:
+                # Try newer API first
+                pde_lib = PDELibrary(
+                    derivative_order=derivative_order,
+                    spatial_grid=x,
+                    include_bias=True,
+                    is_uniform=True,
+                )
+            except TypeError:
+                # Fall back to older API
+                pde_lib = PDELibrary(
+                    function_library=PolynomialLibrary(degree=polynomial_degree),
+                    derivative_order=derivative_order,
+                    spatial_grid=x,
+                    include_bias=True,
+                    is_uniform=True,
+                )
             
             # Create differentiator
             differentiator = FiniteDifference(order=2)
@@ -135,6 +145,8 @@ class PySINDyMethod(IdentMethodBase):
                 u_dot_pred = model.predict(u_win, multiple_trajectories=False)
                 if u_dot_pred.shape == u_dot_true.shape:
                     residual = np.mean((u_dot_true - u_dot_pred) ** 2)
+                    # Normalize residual
+                    residual = residual / (np.var(u_dot_true) + 1e-10)
                 else:
                     residual = 1.0
             except Exception:
@@ -142,7 +154,7 @@ class PySINDyMethod(IdentMethodBase):
             
             # Compute metrics
             f1, coeff_err = self._compute_structure_metrics(
-                terms, coeff_dict, true_coeffs
+                terms, coeff_dict, true_coeffs, residual
             )
             
             runtime = time.time() - start_time
@@ -165,7 +177,7 @@ class PySINDyMethod(IdentMethodBase):
                 {"error": str(e), "runtime": runtime, "terms": [], "coefficients": {}}
             )
     
-    def _compute_structure_metrics(self, pred_terms, pred_coeffs, true_coeffs):
+    def _compute_structure_metrics(self, pred_terms, pred_coeffs, true_coeffs, residual=None):
         """
         Compute F1 score and coefficient error.
         
@@ -173,14 +185,15 @@ class PySINDyMethod(IdentMethodBase):
             pred_terms: list of identified term names
             pred_coeffs: dict of {term: coeff}
             true_coeffs: dict of {term: coeff} or None
+            residual: optional residual to use as e2 if no term match
         
         Returns:
             f1: float in [0, 1]
             coeff_err: float >= 0
         """
         if true_coeffs is None:
-            # No ground truth - return placeholder
-            return 0.0, 1.0
+            # No ground truth - use residual as e2 if available
+            return 0.0, min(residual, 1.0) if residual is not None else 1.0
         
         true_terms = set(true_coeffs.keys())
         pred_terms_set = set(pred_terms)

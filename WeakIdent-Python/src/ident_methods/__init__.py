@@ -30,14 +30,14 @@ from .registry import METHOD_REGISTRY
 
 # Import method implementations to auto-register them
 try:
-    from .pysindy_method import PySINDyMethod
+    from .lasso_sindy_method import LassoSINDyMethod
 except ImportError:
-    pass  # pysindy not installed
+    pass  # sklearn not installed
 
 try:
-    from .wsindy_method import WSINDyMethod
+    from .stlsq_method import STLSQMethod
 except ImportError:
-    pass  # pysindy not installed
+    pass  # Should always work (no external deps)
 
 try:
     from .robustident_method import RobustIdentMethod
@@ -49,4 +49,16 @@ try:
 except ImportError:
     pass  # May fail if model.py not available
 
+# Optional: PySINDy-based methods (may have API issues)
+try:
+    from .pysindy_method import PySINDyMethod
+except ImportError:
+    pass
+
+try:
+    from .wsindy_method import WSINDyMethod
+except ImportError:
+    pass
+
 __all__ = ["IdentMethodBase", "METHOD_REGISTRY"]
+

@@ -129,3 +129,182 @@ We provide sample output for each equation(dataset) in  the folder `output`.
 
 ## Credit/note
 Build feature matrix through convolution (using fft), this part of the code is modified from `get_lib_columns()` (originally Matlab version) from [WeakSindyPde](https://github.com/dm973/WSINDy_PDE).
+
+---
+
+## PDE-Selector: Algorithm-Selection Meta-Learner
+
+**NEW**: This repository now includes a **PDE-Selector** framework that automatically chooses the best IDENT method for a given spatiotemporal dataset using machine learning.
+
+### Quick Start with PDE-Selector
+
+**Prerequisites**: Python 3.8+, numpy, scipy, scikit-learn, joblib, matplotlib, pyyaml, numpy-indexed
+
+```bash
+# 1. Install dependencies (required for all PDE-Selector features)
+pip install -r requirements.txt
+
+# 2. Generate labeled training dataset
+python scripts/make_dataset.py --cfg config/default.yaml --verbose
+
+# 3. Train per-method regressors (default: rf_multi)
+python scripts/train_selector.py --cfg config/default.yaml
+
+# Train with different models:
+python scripts/train_selector.py --cfg config/default.yaml --model ridge_multi
+python scripts/train_selector.py --cfg config/default.yaml --model catboost_multi --params '{"iterations":600,"learning_rate":0.05,"depth":8}'
+
+# 4. Evaluate selector on test set
+python scripts/evaluate_selector.py --cfg config/default.yaml
+
+# Evaluate with specific model:
+python scripts/evaluate_selector.py --cfg config/default.yaml --model ridge_multi
+
+# 5. Choose and run IDENT on a new field
+python scripts/choose_and_run.py --npy data/u.npy --dx 0.0039 --dt 0.005 --cfg config/default.yaml
+```
+
+### What is PDE-Selector?
+
+PDE-Selector is an **algorithm-selection meta-learner** that:
+- Extracts **12 characteristic features** (Tiny-12) from spatiotemporal data without running IDENT
+- Predicts which IDENT method (e.g., WeakIDENT, RobustIDENT) will perform best
+- Uses a **safety gate** to run multiple methods when predictions are uncertain
+- Saves computation by avoiding unnecessary method runs
+
+**Key Benefits:**
+- ✅ **Faster**: Runs only 1-2 methods instead of all methods
+- ✅ **Smarter**: Learns which method works best for different data characteristics
+- ✅ **Robust**: Falls back to top-2 methods when uncertain
+
+### Architecture
+
+```
+1. Data Generation (src/data_gen.py)
+   - Simulate Burgers, KdV equations
+   - Add noise at multiple levels
+   - Extract windows
+
+2. Feature Extraction (src/features.py)
+   - Tiny-12 features (NO IDENT leakage)
+   - Sampling, derivatives, noise, spectrum, periodicity
+
+3. Labeling (src/label_dataset.py)
+   - Run WeakIDENT on each window
+   - Compute 3 metrics: F1, CoeffErr, ResidualMSE
+   - Save X_features.npy, Y_WeakIDENT.npy
+
+4. Training (src/models.py, src/models/factory.py)
+   - Pluggable meta-regression models (5 types supported)
+   - Per-method regressors predicting 3 metrics
+   - Uncertainty estimation (RF variance; NaN for others)
+
+5. Selection (src/select_and_run.py)
+   - Choose best method based on predicted score
+   - Safety gate: run top-2 if score > tau or uncertainty high
+
+6. Evaluation (src/eval.py)
+   - Regret, Top-1 accuracy, Compute saved
+```
+
+### Supported Models
+
+PDE-Selector supports 5 pluggable meta-regression models:
+
+1. **linear_ols**: MultiOutputRegressor(LinearRegression()) - Fast baseline
+2. **ridge_multi**: MultiOutputRegressor(Ridge()) - Regularized linear model
+3. **regressor_chain_ridge**: RegressorChain(Ridge()) - Chain-based multi-output
+4. **rf_multi**: RandomForestRegressor - Tree ensemble with variance estimation (default)
+5. **catboost_multi**: CatBoostRegressor - Gradient boosting with multi-output support
+
+**Uncertainty**: Only `rf_multi` provides variance estimates; others return NaN (safety gate handles it).
+
+### Configuration
+
+Edit `config/default.yaml` to customize:
+- PDE families (Burgers, KdV, KS)
+- Noise levels
+- Window sizes and strides
+- Model selection (`model.name`) and hyperparameters (`model.params`)
+- Cross-validation settings (optional)
+- Aggregation weights for 3 metrics
+- Safety threshold (tau)
+
+**Example model configuration:**
+```yaml
+model:
+  name: rf_multi  # or linear_ols, ridge_multi, regressor_chain_ridge, catboost_multi
+  params:
+    n_estimators: 300
+    max_depth: 8
+  random_state: 0
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run specific test
+pytest tests/test_features.py -v
+```
+
+### Directory Structure
+
+```
+WeakIdent-Python/
+├── src/               # PDE-Selector core modules
+│   ├── features.py       # Tiny-12 feature extraction
+│   ├── data_gen.py       # Burgers/KdV simulators
+│   ├── ident_api.py      # IDENT method adapters
+│   ├── metrics.py        # 3 error metrics + aggregation
+│   ├── label_dataset.py  # Dataset generation
+│   ├── models.py         # PerMethodRegressor (pluggable models)
+│   ├── models/           # Model factory
+│   │   └── factory.py    # create_model() for 5 model types
+│   ├── select_and_run.py # Selector + safety gate
+│   └── eval.py           # Evaluation metrics
+├── scripts/           # CLI scripts
+│   ├── make_dataset.py
+│   ├── train_selector.py
+│   ├── evaluate_selector.py
+│   └── choose_and_run.py
+├── tests/             # Unit tests
+├── config/            # Configuration files
+│   └── default.yaml
+├── models/            # Trained .joblib models
+├── artifacts/         # Datasets and outputs
+└── logs/              # Execution logs
+```
+
+### Reference
+
+For full implementation details, see:
+- `pde-selector-implementation-plan.md` - Complete specification
+- `RUNLOG.md` - Development log and gap analysis
+
+---
+
+## Dataset file format (u, xs, true_coefficients)
+
+Each dataset file in `dataset-Python/` is a single `.npy` file containing three consecutive NumPy arrays saved with `allow_pickle=True`:
+
+- `u`: object array of length `n` (number of variables). For 1D-in-space PDEs, `u[0]` has shape `(Nx, Nt)`.
+- `xs`: object array of length `dim_x + 1`. For 1D-in-space, `xs = [x, t]` where `x.shape == (Nx, 1)` and `t.shape == (1, Nt)`.
+- `true_coefficients`: object array of length `n`. Each entry is a 2D float array where each row is `[beta_u, d_x, d_t, coeff]` for `n=1, dim_x=1`. For example, viscous Burgers `u_t = - (u^2)_x/2 + \nu u_{xx}` is encoded as:
+
+```
+[[2., 1., 0., -0.5],   # (u^2)_x with coefficient -1/2
+ [1., 2., 0.,  0.01]]  # u_{xx} with viscosity 0.01
+```
+
+### Regenerating Burgers (viscous) dataset
+
+- Run:
+
+```
+python make_burgers_viscous.py
+```
+
+- This writes `dataset-Python/burgers_viscous.npy` with the correct structure for `main.py --config configs/burgers_viscous.yaml`.
