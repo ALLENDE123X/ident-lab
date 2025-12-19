@@ -31,10 +31,10 @@
 
 \section*{Author Introduction}
 
-My interest in this work stems from a practical frustration: when faced with noisy spatiotemporal data, which PDE identification method should one use? Running all available methods is computationally expensive, taking hours for large datasets, and the best choice depends heavily on properties of the data that are not obvious a priori. This project set out to build a meta-learning system that predicts which identification method will perform best on a given data window, before running any expensive computation. The result is a framework that achieves 97\% accuracy in selecting the optimal method, with 99.4\% of predictions incurring zero regret relative to an oracle that always picks the best method.
+My interest in this work stems from a practical frustration: when faced with noisy spatiotemporal data, which PDE identification method should one use? Running all available methods is computationally expensive, taking hours for large datasets, and the best choice depends heavily on properties of the data that are not obvious a priori. This project set out to build a meta-learning system that predicts which identification method will perform best on a given data window, before running any expensive computation. The result is a framework that achieves 97.06\% test accuracy in selecting the optimal method, with 97.06\% of held-out test predictions incurring zero regret relative to an oracle that always picks the best method.
 
 \begin{abstract}
-Identifying governing partial differential equations (PDEs) from noisy spatiotemporal data is a central challenge in scientific machine learning. While numerous identification methods exist (including weak-form, sparse regression, and robust approaches), practitioners lack principled guidance on which method to apply for a given dataset. We present a meta-learning framework that predicts the best-performing identification method for a data window based on 12 computationally inexpensive features extracted from the raw data, without running any identification algorithm. Using a dataset of 5,786 windows extracted from four canonical PDEs (KdV, Heat, Kuramoto-Sivashinsky, and Transport), we train a Random Forest classifier that achieves 97.06\% test accuracy in selecting among four identification methods (LASSO, STLSQ, WeakIDENT, and RobustIDENT). On the full dataset, 99.4\% of predictions achieve zero regret, meaning the selector matches the oracle's choice. Our framework enables efficient algorithm selection for PDE discovery pipelines, reducing computational cost by avoiding unnecessary method evaluations.
+Identifying governing partial differential equations (PDEs) from noisy spatiotemporal data is a central challenge in scientific machine learning. While numerous identification methods exist (including weak-form, sparse regression, and robust approaches), practitioners lack principled guidance on which method to apply for a given dataset. We present a meta-learning framework that predicts the best-performing identification method for a data window based on 12 computationally inexpensive features extracted from the raw data, without running any identification algorithm. Using a dataset of 5,786 windows extracted from four canonical PDEs (KdV, Heat, Kuramoto-Sivashinsky, and Transport), we train a Random Forest classifier that achieves 97.06\% test accuracy in selecting among four identification methods (LASSO, STLSQ, WeakIDENT, and RobustIDENT). On the held-out test set, 97.06\% of predictions achieve zero regret, meaning the selector matches the oracle's choice. Our framework enables efficient algorithm selection for PDE discovery pipelines, reducing computational cost by avoiding unnecessary method evaluations.
 \end{abstract}
 
 \section{Problem and Motivation}
@@ -84,7 +84,7 @@ We evaluated six classifier families spanning a range of model complexities, eac
     
     \item \textbf{Support Vector Machine (RBF kernel)} \citep{cortes1995support}: A strong general-purpose nonlinear classifier effective in moderate dimensions, capable of capturing complex decision boundaries.
     
-    \item \textbf{Tree ensembles} (Random Forest \citep{breiman2001random}, Gradient Boosting \citep{friedman2001greedy}): Handle nonlinearities and feature interactions naturally, are robust to feature scaling, and typically achieve strong performance on tabular, heterogeneous feature sets like the Tiny-12 features.
+    \item \textbf{Tree ensembles} (Random Forest \citep{breiman2001random}, Gradient Boosting \citep{friedman2001greedy}): Handle nonlinearities and feature interactions naturally, are robust to feature scaling, and typically achieve strong performance on tabular, heterogeneous feature sets like the Tiny-12 features. A comprehensive comparison of 179 classifiers across 121 datasets found Random Forest to be among the top-performing methods for general classification tasks \citep{fernandez2014we}.
 \end{itemize}
 
 \subsection{Safety Gate (Future Work)}
@@ -202,27 +202,36 @@ Figure~\ref{fig:model_comparison} visualizes this comparison.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{model_comparison.png}
+\includegraphics[width=0.9\textwidth]{figures/model_comparison.png}
 \caption{Comparison of classifier accuracy for method selection. Random Forest achieves the highest test accuracy, though several methods perform competitively.}
 \label{fig:model_comparison}
 \end{figure}
 
 \subsection{Regret Analysis}
 
-Using the Random Forest selector, we computed regret on the full dataset (note: this includes training data, so the result is optimistic; a held-out evaluation would yield a slightly lower zero-regret rate):
+Using the Random Forest selector, we computed regret on both the held-out test set and the full dataset:
 
+\textbf{Held-out test set (1,158 windows):}
 \begin{itemize}
-    \item \textbf{Zero-regret count:} 5,752 of 5,786 windows (99.4\%)
-    \item \textbf{Mean regret:} 0.0002
+    \item \textbf{Zero-regret count:} 1,124 of 1,158 windows (97.06\%)
+    \item \textbf{Mean regret:} 0.0010
     \item \textbf{Max regret:} 0.4396
 \end{itemize}
+
+\textbf{Full dataset, in-sample (5,786 windows):}
+\begin{itemize}
+    \item \textbf{Zero-regret count:} 5,752 of 5,786 windows (99.41\%)
+    \item \textbf{Mean regret:} 0.0002
+\end{itemize}
+
+The higher in-sample zero-regret rate is expected since this includes training data. The held-out test results provide a more conservative and realistic estimate of performance on unseen windows.
 
 Figure~\ref{fig:regret_cdf} shows the cumulative distribution of regret values. The steep rise at zero indicates that the vast majority of predictions exactly match the oracle.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.8\textwidth]{regret_cdf.png}
-\caption{Cumulative distribution of regret. The near-vertical rise at $x=0$ indicates 99.4\% of predictions achieve zero regret.}
+\includegraphics[width=0.8\textwidth]{figures/regret_cdf.png}
+\caption{Cumulative distribution of regret. The near-vertical rise at $x=0$ indicates that 97.06\% of held-out test predictions achieve zero regret.}
 \label{fig:regret_cdf}
 \end{figure}
 
@@ -232,18 +241,18 @@ Figure~\ref{fig:confusion} shows the confusion matrix for the Random Forest clas
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.7\textwidth]{confusion_matrix.png}
+\includegraphics[width=0.7\textwidth]{figures/confusion_matrix.png}
 \caption{Confusion matrix for method selection on the test set. Strong diagonal dominance indicates accurate classification.}
 \label{fig:confusion}
 \end{figure}
 
 \subsection{Feature Importance}
 
-Figure~\ref{fig:features} shows the Random Forest feature importances. The $u_{xx}$ standard deviation (feature 1) is most predictive, followed by $u_{xxx}$ standard deviation (feature 2) and $u_x$ standard deviation (feature 0). These derivative features capture the spatial complexity of the dynamics, which strongly influences method performance.
+Figure~\ref{fig:features} shows the Random Forest feature importances. The $\sigma(u_{xx})$ (feature 1) is most predictive at 23.2\%, followed by $\sigma(u_{xxx})$ (feature 2) at 16.2\%, and $\sigma(u_x)$ (feature 0) at 11.5\%. These spatial derivative statistics capture the complexity of the dynamics, which strongly influences method performance.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{feature_importance.png}
+\includegraphics[width=0.9\textwidth]{figures/feature_importance.png}
 \caption{Feature importance for the Random Forest selector. Spatial derivative statistics are most predictive of optimal method choice.}
 \label{fig:features}
 \end{figure}
@@ -254,12 +263,14 @@ Figure~\ref{fig:distribution} shows the distribution of best methods across the 
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.7\textwidth]{method_distribution.png}
+\includegraphics[width=0.7\textwidth]{figures/method_distribution.png}
 \caption{Distribution of best-performing methods across windows. LASSO and STLSQ dominate on this clean synthetic dataset.}
 \label{fig:distribution}
 \end{figure}
 
-The distribution is notably skewed: LASSO is optimal for 63.0\% of windows, STLSQ for 36.9\%, while WeakIDENT and RobustIDENT together account for only 0.1\%. This is expected for clean synthetic data, where fast sparse regression methods perform well. A naive baseline of ``always select LASSO'' would achieve 63\% accuracy, compared to the selector's 97\%, a gain of 34 percentage points. The selector learns to correctly identify the 37\% of cases where STLSQ outperforms LASSO.
+The distribution is notably skewed with exact counts: LASSO is optimal for 3,644 windows (63.0\%), STLSQ for 2,136 windows (36.9\%), WeakIDENT for 4 windows (0.07\%), and RobustIDENT for 2 windows (0.03\%). This extreme imbalance reflects the favorable conditions of our clean synthetic data, where fast sparse regression methods perform well. The train-test split uses stratification (stratify=y), but with only 6 samples in the minority classes, these classes are inherently difficult to learn; the classifier effectively operates as a binary LASSO-vs-STLSQ selector in this regime.
+
+A naive baseline of ``always select LASSO'' would achieve 63\% accuracy, compared to the selector's 97.06\%, a gain of 34 percentage points. The selector learns to correctly identify the 37\% of cases where STLSQ outperforms LASSO.
 
 \subsection{Noise Stress Test}
 
@@ -269,14 +280,14 @@ Figure~\ref{fig:noise_distribution} shows how the best-method distribution shift
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{noise_best_method_distribution.png}
+\includegraphics[width=0.95\textwidth]{figures/noise_best_method_distribution.png}
 \caption{Best-method distribution under different corruption settings. Under 2\% and 5\% Gaussian noise, RobustIDENT becomes the optimal method for approximately 20\% of windows, demonstrating that robust methods gain importance under noisy conditions.}
 \label{fig:noise_distribution}
 \end{figure}
 
-Key findings from this experiment:
+Key findings from this experiment (200-window subset):
 \begin{itemize}
-    \item On clean data, LASSO wins 56.5\% and STLSQ wins 43.5\% of windows (consistent with the main results).
+    \item On the clean subset, LASSO wins 56.5\% and STLSQ wins 43.5\% of windows (similar ordering to the main dataset, though percentages differ due to random sampling).
     \item Under 2\% Gaussian noise, RobustIDENT becomes optimal for 20.5\% of windows, while LASSO drops to 44.5\% and STLSQ to 35\%.
     \item Under 5\% Gaussian noise, RobustIDENT captures 19\% of windows.
     \item Under outlier corruption (1\% spikes), RobustIDENT is optimal for 19\% of windows.
@@ -287,9 +298,9 @@ These results confirm that robust methods become competitive under adverse condi
 
 \section{Limitations and Future Work}
 
-\textbf{Skewed class distribution:} On clean synthetic data, LASSO and STLSQ dominate, accounting for 99.9\% of best-method selections. WeakIDENT and RobustIDENT collectively appear as optimal in only 0.1\% of windows. This reflects the favorable conditions of our synthetic experiments (low noise, sufficient resolution). Under higher noise levels, outlier-corrupted data, or coarser spatial grids, weak-form methods like WeakIDENT are expected to outperform sparse regression approaches due to their inherent noise robustness through integration. Future work should systematically evaluate method performance across a noise-resolution parameter sweep to demonstrate regimes where WeakIDENT and RobustIDENT become the preferred methods.
+\textbf{Skewed class distribution:} On clean synthetic data, LASSO and STLSQ dominate, accounting for 99.9\% of best-method selections (5,780 of 5,786 windows). WeakIDENT and RobustIDENT collectively appear as optimal in only 6 windows. This reflects the favorable conditions of our synthetic experiments (low noise, sufficient resolution). Our noise stress test demonstrates that RobustIDENT captures up to 20\% of windows under 2\% Gaussian noise, confirming that robust methods become important under adverse conditions. Future work should systematically evaluate method performance across a noise-resolution parameter sweep.
 
-\textbf{Regret computed on training data:} The 99.4\% zero-regret rate was computed on the full dataset including training examples. A held-out regret evaluation (using only test set predictions) would provide a more conservative estimate.
+\textbf{Stratification brittleness:} The train-test split uses stratification, but with only 6 total samples in the minority classes (WeakIDENT: 4, RobustIDENT: 2), the classifier cannot reliably learn to select these methods. Performance on minority classes should be interpreted cautiously.
 
 \textbf{PySINDy and WSINDy:} These PySINDy-based methods are available in the Docker environment but not in the standard installation due to dependency conflicts. Extending the comparison to include these methods is straightforward using the Docker workflow.
 
@@ -301,7 +312,7 @@ These results confirm that robust methods become competitive under adverse condi
 
 \section*{Conclusion}
 
-We presented a meta-learning framework for automated PDE identification method selection. By extracting 12 inexpensive features from raw data, a Random Forest classifier predicts with 97\% accuracy which of four identification methods will perform best. On our dataset of 5,786 windows from four canonical PDEs, 99.4\% of predictions matched the oracle's choice, achieving zero regret. This framework enables efficient algorithm selection for PDE discovery, avoiding the computational cost of running all methods on every data window. Future work will extend the approach to noisy data regimes, implement uncertainty-based safety mechanisms, and evaluate cross-PDE generalization.
+We presented a meta-learning framework for automated PDE identification method selection. By extracting 12 inexpensive features from raw data, a Random Forest classifier predicts with 97.06\% test accuracy which of four identification methods will perform best. On our held-out test set of 1,158 windows, 97.06\% of predictions matched the oracle's choice, achieving zero regret. This framework enables efficient algorithm selection for PDE discovery, avoiding the computational cost of running all methods on every data window. Future work will extend the approach to noisy data regimes, implement uncertainty-based safety mechanisms, and evaluate cross-PDE generalization.
 
 \section*{Acknowledgements}
 
