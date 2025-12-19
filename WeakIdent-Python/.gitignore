@@ -50,3 +50,4 @@ models/*.joblib
 # Temporary
 *.tmp
 *.bak
+dataset-Python/LotkaVolterra2D.npy
