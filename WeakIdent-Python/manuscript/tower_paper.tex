@@ -74,7 +74,7 @@ We formulate method selection as a multiclass classification problem. For each d
 
 We evaluated six classifiers: Random Forest, Gradient Boosting, K-Nearest Neighbors, Logistic Regression, Support Vector Machine (RBF kernel), and Ridge Classifier. All models were trained using scikit-learn with default hyperparameters and a fixed random seed (42) for reproducibility.
 
-The training pipeline consists of: (1) loading the labeled dataset with features and best-method labels; (2) standardizing features using z-score normalization; (3) splitting into 80\% training and 20\% test sets with stratification; and (4) training each classifier and evaluating on the held-out test set.
+The training pipeline consists of: (1) loading the labeled dataset with features and best-method labels; (2) standardizing features using z-score normalization; (3) splitting into 80\% training and 20\% test sets with stratification; and (4) training each classifier and evaluating on the held-out test set. Stratification is best-effort; for extremely rare classes (e.g., RobustIDENT with 2 total samples), the 80/20 split may yield zero test examples.
 
 \subsection{Classifier Selection Rationale}
 
@@ -305,6 +305,8 @@ These results confirm that robust methods become competitive under moderate adve
 \textbf{Skewed class distribution:} On clean synthetic data, LASSO and STLSQ dominate, accounting for 99.9\% of best-method selections (5,780 of 5,786 windows). WeakIDENT and RobustIDENT collectively appear as optimal in only 6 windows. This reflects the favorable conditions of our synthetic experiments (low noise, sufficient resolution). Our noise stress test demonstrates that RobustIDENT captures up to 20\% of windows under 2\% Gaussian noise, confirming that robust methods become important under adverse conditions. Future work should systematically evaluate method performance across a noise-resolution parameter sweep.
 
 \textbf{Stratification brittleness:} The train-test split uses stratification, but with only 6 total samples in the minority classes (WeakIDENT: 4, RobustIDENT: 2), the classifier cannot reliably learn to select these methods. Performance on minority classes should be interpreted cautiously.
+
+\textbf{Preprocessing leakage:} Feature standardization was computed using global dataset statistics prior to the train/test split. This introduces minor data leakage and may make the reported test performance slightly optimistic; future work will enforce train-only preprocessing.
 
 \textbf{PySINDy and WSINDy:} These PySINDy-based methods are available in the Docker environment but not in the standard installation due to dependency conflicts. Extending the comparison to include these methods is straightforward using the Docker workflow.
 
