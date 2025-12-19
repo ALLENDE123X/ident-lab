@@ -73,6 +73,20 @@ We evaluated six classifiers: Random Forest, Gradient Boosting, K-Nearest Neighb
 
 The training pipeline consists of: (1) loading the labeled dataset with features and best-method labels; (2) standardizing features using z-score normalization; (3) splitting into 80\% training and 20\% test sets with stratification; and (4) training each classifier and evaluating on the held-out test set.
 
+\subsection{Classifier Selection Rationale}
+
+We evaluated six classifier families spanning a range of model complexities, each motivated by considerations from the algorithm selection literature \citep{rice1976algorithm, kerschke2019automated}:
+
+\begin{itemize}
+    \item \textbf{Linear models} (Logistic Regression, Ridge Classifier): Simple baselines with strong interpretability \citep{hastie2009elements}. If the decision boundary in feature space is approximately linear, these provide efficient and explainable predictions.
+    
+    \item \textbf{K-Nearest Neighbors} \citep{cover1967nearest}: A nonparametric method that makes predictions based on local similarity in feature space. Useful as a reference for detecting locally clustered structure.
+    
+    \item \textbf{Support Vector Machine (RBF kernel)} \citep{cortes1995support}: A strong general-purpose nonlinear classifier effective in moderate dimensions, capable of capturing complex decision boundaries.
+    
+    \item \textbf{Tree ensembles} (Random Forest \citep{breiman2001random}, Gradient Boosting \citep{friedman2001greedy}): Handle nonlinearities and feature interactions naturally, are robust to feature scaling, and typically achieve strong performance on tabular, heterogeneous feature sets like the Tiny-12 features.
+\end{itemize}
+
 \subsection{Safety Gate (Future Work)}
 
 The current implementation uses a hard classifier that selects a single method. A natural extension is a ``safety gate'' that runs multiple methods when the classifier's confidence is low. This would involve extracting uncertainty estimates (for example, from Random Forest tree disagreement) and triggering a fallback to top-2 methods when uncertainty exceeds a threshold. We leave the implementation and evaluation of this safety mechanism to future work.
@@ -90,7 +104,7 @@ We generated data from four canonical PDEs, each representing different dynamica
     \item \textbf{Transport}: $u_t + c u_x = 0$. Linear advection equation.
 \end{itemize}
 
-Each PDE was simulated on a uniform grid using spectral methods, producing solution fields stored as NumPy arrays.
+Data for each PDE was simulated on a uniform space-time grid and stored as NumPy arrays. All preprocessing and windowing are fully specified in the repository scripts; the data loading and window extraction steps are deterministic given fixed random seeds.
 
 \subsection{Window Extraction}
 
@@ -246,6 +260,30 @@ Figure~\ref{fig:distribution} shows the distribution of best methods across the 
 \end{figure}
 
 The distribution is notably skewed: LASSO is optimal for 63.0\% of windows, STLSQ for 36.9\%, while WeakIDENT and RobustIDENT together account for only 0.1\%. This is expected for clean synthetic data, where fast sparse regression methods perform well. A naive baseline of ``always select LASSO'' would achieve 63\% accuracy, compared to the selector's 97\%, a gain of 34 percentage points. The selector learns to correctly identify the 37\% of cases where STLSQ outperforms LASSO.
+
+\subsection{Noise Stress Test}
+
+To investigate how method performance changes under data corruption, we conducted a noise stress test on a subset of 200 randomly sampled windows. We applied controlled corruption to each window before running the identification methods: additive Gaussian noise (2\% and 5\% of signal standard deviation) and outlier corruption (1\% and 3\% of values replaced with 5--10$\times$ spikes).
+
+Figure~\ref{fig:noise_distribution} shows how the best-method distribution shifts under each corruption setting.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{noise_best_method_distribution.png}
+\caption{Best-method distribution under different corruption settings. Under 2\% and 5\% Gaussian noise, RobustIDENT becomes the optimal method for approximately 20\% of windows, demonstrating that robust methods gain importance under noisy conditions.}
+\label{fig:noise_distribution}
+\end{figure}
+
+Key findings from this experiment:
+\begin{itemize}
+    \item On clean data, LASSO wins 56.5\% and STLSQ wins 43.5\% of windows (consistent with the main results).
+    \item Under 2\% Gaussian noise, RobustIDENT becomes optimal for 20.5\% of windows, while LASSO drops to 44.5\% and STLSQ to 35\%.
+    \item Under 5\% Gaussian noise, RobustIDENT captures 19\% of windows.
+    \item Under outlier corruption (1\% spikes), RobustIDENT is optimal for 19\% of windows.
+\end{itemize}
+
+These results confirm that robust methods become competitive under adverse conditions, motivating the need for adaptive method selection rather than a one-size-fits-all approach.
+
 
 \section{Limitations and Future Work}
 
