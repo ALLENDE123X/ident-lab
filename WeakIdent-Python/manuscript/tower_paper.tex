@@ -249,7 +249,7 @@ The distribution is notably skewed: LASSO is optimal for 63.0\% of windows, STLS
 
 \section{Limitations and Future Work}
 
-\textbf{Skewed class distribution:} On clean synthetic data, LASSO and STLSQ dominate. Including noisy data, coarser grids, or more challenging PDEs would create a more balanced distribution where robust and weak-form methods excel.
+\textbf{Skewed class distribution:} On clean synthetic data, LASSO and STLSQ dominate, accounting for 99.9\% of best-method selections. WeakIDENT and RobustIDENT collectively appear as optimal in only 0.1\% of windows. This reflects the favorable conditions of our synthetic experiments (low noise, sufficient resolution). Under higher noise levels, outlier-corrupted data, or coarser spatial grids, weak-form methods like WeakIDENT are expected to outperform sparse regression approaches due to their inherent noise robustness through integration. Future work should systematically evaluate method performance across a noise-resolution parameter sweep to demonstrate regimes where WeakIDENT and RobustIDENT become the preferred methods.
 
 \textbf{Regret computed on training data:} The 99.4\% zero-regret rate was computed on the full dataset including training examples. A held-out regret evaluation (using only test set predictions) would provide a more conservative estimate.
 
@@ -267,7 +267,7 @@ We presented a meta-learning framework for automated PDE identification method s
 
 \section*{Acknowledgements}
 
-The author thanks the Georgia Tech School of Mathematics for computational resources. The WeakIDENT implementation builds on code by Mengyi Tang Rajchel. This work was supported in part by undergraduate research opportunities at Georgia Tech.
+The author thanks Dr.\ Sung Ha Kang (Georgia Tech School of Mathematics) for guidance and for developing the WeakIDENT framework that this work extends. The WeakIDENT implementation is based on the original codebase by Mengyi Tang and collaborators \citep{tang2023weakident}. The author also thanks the Georgia Tech School of Mathematics for computational resources. This work was supported in part by undergraduate research opportunities at Georgia Tech.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
